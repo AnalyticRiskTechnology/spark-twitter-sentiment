@@ -1,10 +1,17 @@
-Sentiment Analysis of Live Twitter Stream Using Apache Spark 
+Sentiment Analysis of Live Twitter Stream Using Apache Spark
 ============================================================
 
-This application analyzes live tweets and predicts if they are positive, or negative. The application works by connecting 
-to the Twitter stream, and applying a model built offline using Spark's machine learning library (Mllib) to classify 
-the tweet's sentiment. Using the instructions on this page, you will be able to build the model on HDP Sandbox and then 
+This application analyzes live tweets and predicts if they are positive, or negative. The application works by connecting
+to the Twitter stream, and applying a model built offline using Spark's machine learning library (Mllib) to classify
+the tweet's sentiment. Using the instructions on this page, you will be able to build the model on HDP Sandbox and then
 apply it to a live twitter stream.
+
+This version is forked from DhruvKumar/spark-twitter-sentiment as that has a broken link to the training data.
+This version uses some publically available tweet data from 2009 (before it got harder to get extracts to work on)
+
+It has been changed to classify sentiment of some leading UK banks
+
+I've also added a bulk classification that write the results back into a Hive table
 
 Prerequisites
 -------------
@@ -24,7 +31,7 @@ $ cd
 $ git clone https://github.com/DhruvKumar/spark-twitter-sentiment
 ```
 
-* Download the labeled training data into the sandbox. 
+* Download the labeled training data into the sandbox.
 
 ```bash
 $ wget https://www.dropbox.com/s/1k355mod4p70jiq/dataset.csv?dl=0
@@ -36,7 +43,7 @@ $ wget https://www.dropbox.com/s/1k355mod4p70jiq/dataset.csv?dl=0
 $ hadoop fs -put tweets /tmp/tweets
 ```
 
-* Sign up for dev Twitter account and get the OAuth credentials [here for free](https://apps.twitter.com/). 
+* Sign up for dev Twitter account and get the OAuth credentials [here for free](https://apps.twitter.com/).
 
 
 Build and package the code
@@ -47,14 +54,14 @@ Compile the code using maven:
 ```bash
 $ cd
 $ cd spark-twitter-sentiment
-$ mvn clean package 
-``` 
+$ mvn clean package
+```
 
 This will build and place the uber jar "twittersentiment-0.0.1-jar-with-dependencies.jar" under the target/ directory.
- 
+
 We're now ready to train the model
 
-Train the Model 
+Train the Model
 -----------------------------------------
 
 ```bash
@@ -66,7 +73,7 @@ $ spark-submit --master yarn-client \
                trainedModel
 ```
 
-This will train and test the model, and put it under the trainedModel directory. You should see the results of the 
+This will train and test the model, and put it under the trainedModel directory. You should see the results of the
 testing, with predicted sentiments like this:
 
 ```bash
@@ -160,11 +167,11 @@ Predicted Label = negative
 Predict sentiment of live tweets using the model
 -------------------------------------------------
 
-Now that the model is trained and saved, let's apply it to a live twitter stream and see if we can classify sentiment 
+Now that the model is trained and saved, let's apply it to a live twitter stream and see if we can classify sentiment
 accurately. Launch the following command with your twitter dev keys:
 
 ```bash
-$ cd 
+$ cd
 $ spark-submit \
     --class com.dhruv.Predict \
     --master yarn-client \
@@ -172,14 +179,14 @@ $ spark-submit \
     --executor-memory 512m \
     --executor-cores 2 \
     target/twittersentiment-0.0.1-jar-with-dependencies.jar \
-    trainedModel \ 
+    trainedModel \
     --consumerKey {your Twitter consumer key} \
     --consumerSecret {your Twitter consumer secret} \
     --accessToken {your Twitter access token} \
     --accessTokenSecret {your Twitter access token secret}
 ```
 
-This command will set up spark streaming, connect to twitter using your dev credentials, and start printing tweets 
+This command will set up spark streaming, connect to twitter using your dev credentials, and start printing tweets
 with predicted sentiment. Label 1.0 is a positive sentiment, and 0.0 is negative. Each tweet and its predicted label
 is displayed like this:
 
@@ -194,8 +201,8 @@ is displayed like this:
 Where to go from here?
 -------------------------------------------------
 
-I've used a very simple feature extractor--a bigram model, hashed down to 1000 features. This can be vastly improved. 
-Experiment with removing stop words (in, the, and, etc.) from the tweets before training as they don't add any info. 
+I've used a very simple feature extractor--a bigram model, hashed down to 1000 features. This can be vastly improved.
+Experiment with removing stop words (in, the, and, etc.) from the tweets before training as they don't add any info.
 Consider lemmafying the tweets, which makes multiple forms of the word appear as one word (train and trains are same).
-I've put in the NLP pipeline parsers and lemma-fiers from Stanford NLP library, so you can start from there. 
+I've put in the NLP pipeline parsers and lemma-fiers from Stanford NLP library, so you can start from there.
 Consider also using tf-idf, and experiment with other classifiers in Spark MLlib such as Random Forest.
