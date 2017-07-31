@@ -13,12 +13,11 @@ import org.apache.spark.sql.hive.HiveContext
 object BulkPredict {
   def main(args: Array[String]) {
     if (args.length < 1) {
-      System.err.println("Usage: " + this.getClass.getSimpleName + " <modelDirectory> ")
+      System.err.println("Usage: " + this.getClass.getSimpleName + " <modelDirectory> <bulkdata.csv> ")
       System.exit(1)
     }
 
-    val Array(modelFile) =
-      Utils.parseCommandLineWithTwitterCredentials(args)
+    val modelFile = args(0)
 
     println("Initializing Streaming Spark Context...")
     val conf = new SparkConf().setAppName(this.getClass.getSimpleName)
@@ -32,7 +31,7 @@ object BulkPredict {
     //val tweets = TwitterUtils.createStream(ssc, Utils.getAuth)
     //val statuses = tweets.filter(_.getLang == "en").map(_.getText)
     println("Getting bulk data ...")
-    val allData = sc.textFile(args(0))
+    val allData = sc.textFile(args(1))
     val header = allData.first()
     val statuses = allData.filter(x => x != header)
 
